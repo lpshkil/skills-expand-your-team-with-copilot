@@ -569,6 +569,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-buttons">
+        <button class="share-button twitter" data-activity="${name}" title="Share on Twitter" aria-label="Share on Twitter">𝕏</button>
+        <button class="share-button facebook" data-activity="${name}" title="Share on Facebook" aria-label="Share on Facebook">f</button>
+        <button class="share-button email" data-activity="${name}" title="Share via Email" aria-label="Share via Email">✉</button>
+        <button class="share-button copy-link" data-activity="${name}" title="Copy Link" aria-label="Copy link to clipboard">🔗</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +592,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    // Add click handlers for share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        const activityName = event.currentTarget.dataset.activity;
+        const activityDetails = allActivities[activityName];
+        handleShare(event.currentTarget, activityName, activityDetails);
+      });
+    });
 
     activitiesList.appendChild(activityCard);
   }
@@ -809,6 +825,83 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
       messageDiv.classList.add("hidden");
     }, 5000);
+  }
+
+  // Show toast notification
+  function showToast(message) {
+    // Remove existing toast if any
+    const existingToast = document.querySelector(".toast");
+    if (existingToast) {
+      existingToast.remove();
+    }
+
+    // Create and show toast
+    const toast = document.createElement("div");
+    toast.className = "toast";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // Trigger animation
+    setTimeout(() => toast.classList.add("show"), 10);
+
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // Handle share button clicks
+  function handleShare(button, activityName, activityDetails) {
+    // Guard against missing activity details
+    if (!activityDetails) {
+      showToast("Unable to share activity");
+      return;
+    }
+
+    const pageUrl = window.location.origin;
+    const shareText = `Check out ${activityName} at Mergington High School! ${activityDetails.description}`;
+    const shareUrl = `${pageUrl}?activity=${encodeURIComponent(activityName)}`;
+
+    if (button.classList.contains("twitter")) {
+      // Share on Twitter/X
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+      window.open(twitterUrl, "_blank", "width=550,height=420");
+    } else if (button.classList.contains("facebook")) {
+      // Share on Facebook
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+      window.open(facebookUrl, "_blank", "width=550,height=420");
+    } else if (button.classList.contains("email")) {
+      // Share via Email
+      const subject = `Join ${activityName} at Mergington High School!`;
+      const body = `${shareText}\n\nLearn more: ${shareUrl}`;
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } else if (button.classList.contains("copy-link")) {
+      // Copy link to clipboard
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        button.classList.add("copied");
+        showToast("Link copied to clipboard!");
+        setTimeout(() => button.classList.remove("copied"), 2000);
+      }).catch(() => {
+        // Fallback for legacy browsers that don't support clipboard API
+        const textArea = document.createElement("textarea");
+        textArea.value = shareUrl;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          // Using deprecated execCommand as fallback for older browsers
+          document.execCommand("copy");
+          button.classList.add("copied");
+          showToast("Link copied to clipboard!");
+          setTimeout(() => button.classList.remove("copied"), 2000);
+        } catch (err) {
+          showToast("Failed to copy link");
+        }
+        document.body.removeChild(textArea);
+      });
+    }
   }
 
   // Handle form submission
