@@ -570,10 +570,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       </div>
       <div class="share-buttons">
-        <button class="share-button twitter" data-activity="${name}" title="Share on Twitter">𝕏</button>
-        <button class="share-button facebook" data-activity="${name}" title="Share on Facebook">f</button>
-        <button class="share-button email" data-activity="${name}" title="Share via Email">✉</button>
-        <button class="share-button copy-link" data-activity="${name}" title="Copy Link">🔗</button>
+        <button class="share-button twitter" data-activity="${name}" title="Share on Twitter" aria-label="Share on Twitter">𝕏</button>
+        <button class="share-button facebook" data-activity="${name}" title="Share on Facebook" aria-label="Share on Facebook">f</button>
+        <button class="share-button email" data-activity="${name}" title="Share via Email" aria-label="Share via Email">✉</button>
+        <button class="share-button copy-link" data-activity="${name}" title="Copy Link" aria-label="Copy link to clipboard">🔗</button>
       </div>
     `;
 
@@ -853,6 +853,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Handle share button clicks
   function handleShare(button, activityName, activityDetails) {
+    // Guard against missing activity details
+    if (!activityDetails) {
+      showToast("Unable to share activity");
+      return;
+    }
+
     const pageUrl = window.location.origin;
     const shareText = `Check out ${activityName} at Mergington High School! ${activityDetails.description}`;
     const shareUrl = `${pageUrl}?activity=${encodeURIComponent(activityName)}`;
@@ -877,7 +883,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast("Link copied to clipboard!");
         setTimeout(() => button.classList.remove("copied"), 2000);
       }).catch(() => {
-        // Fallback for browsers that don't support clipboard API
+        // Fallback for legacy browsers that don't support clipboard API
         const textArea = document.createElement("textarea");
         textArea.value = shareUrl;
         textArea.style.position = "fixed";
@@ -885,6 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.appendChild(textArea);
         textArea.select();
         try {
+          // Using deprecated execCommand as fallback for older browsers
           document.execCommand("copy");
           button.classList.add("copied");
           showToast("Link copied to clipboard!");
