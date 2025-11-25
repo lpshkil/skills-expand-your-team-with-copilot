@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyTheme(theme) {
     document.documentElement.setAttribute("data-theme", theme);
     themeIcon.textContent = theme === "dark" ? "☀️" : "🌙";
+    themeToggle.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
     localStorage.setItem("theme", theme);
   }
 
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Toggle theme on button click
   themeToggle.addEventListener("click", () => {
-    const currentTheme = document.documentElement.getAttribute("data-theme");
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
     const newTheme = currentTheme === "dark" ? "light" : "dark";
     applyTheme(newTheme);
   });
